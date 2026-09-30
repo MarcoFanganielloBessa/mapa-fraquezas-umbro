@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mapa de Fraquezas Umbro</title>
+<meta name="description" content="Mapa interativo das 41 fraquezas da Umbro Brasil lifestyle, lidas em seis óticas. Plano de Marketing ESPM, Grupo 4.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap">
+<style>
+/* Layout: ficha de arquivo. Óticas no topo, mapa em papel pontilhado à esquerda, ficha técnica à direita. */
+:root{
+  --paper:#E9E9E3; --card:#F4F4EF; --ink:#131311; --muted:#5B5B53; --line:#C2C2B9;
+  --ultra:#2233CC; --diamante:#C8101A; --on-accent:#F4F4EF; --grid:rgba(19,19,17,.10); --shadow:rgba(19,19,17,.22);
+  --tint:rgba(34,51,204,.08);
+  --f-sans:"Hanken Grotesk","Neue Haas Grotesk Text","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"Fragment Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-io:cubic-bezier(.77,0,.175,1);
+  --ease-ui:cubic-bezier(.2,0,0,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#131311; --card:#1C1C19; --ink:#E9E9E3; --muted:#A3A399; --line:#3A3A34;
+    --ultra:#8C98FF; --diamante:#FF5A5F; --on-accent:#0E0E0C; --grid:rgba(233,233,227,.08); --shadow:rgba(0,0,0,.6);
+    --tint:rgba(140,152,255,.10);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131311; --card:#1C1C19; --ink:#E9E9E3; --muted:#A3A399; --line:#3A3A34;
+  --ultra:#8C98FF; --diamante:#FF5A5F; --on-accent:#0E0E0C; --grid:rgba(233,233,227,.08); --shadow:rgba(0,0,0,.6);
+  --tint:rgba(140,152,255,.10);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-sans);font-size:14px;-webkit-font-smoothing:antialiased;overflow:hidden;text-rendering:optimizeLegibility}
+::selection{background:var(--ultra);color:var(--on-accent)}
+*{scrollbar-color:var(--line) transparent}
+button{font:inherit;color:inherit}
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);padding-inline:clamp(16px,2vw,28px)}
+
+/* header */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 28px;flex-wrap:wrap;padding-block:18px 0;border-bottom:1px solid var(--ink)}
+.brand{min-width:0;padding-bottom:14px}
+h1{font-size:30px;font-weight:600;letter-spacing:-.03em;margin:0;line-height:1}
+.byline{font-family:var(--f-mono);font-size:12px;letter-spacing:.02em;color:var(--muted);margin-top:8px}
+.navwrap{display:flex;align-items:flex-end;gap:10px;min-width:0;max-width:100%}
+.tabs{position:relative;display:flex;overflow-x:auto;scrollbar-width:none;min-width:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none;background:none;border:0;color:var(--muted);padding:10px 12px 14px;cursor:pointer;display:flex;gap:7px;align-items:baseline;white-space:nowrap;transition:color .15s var(--ease-ui)}
+.tab .n{font-family:var(--f-mono);font-size:10.5px;font-variant-numeric:tabular-nums}
+.tab .l{font-size:14px;font-weight:500}
+.tab[aria-selected="true"]{color:var(--ink)}
+@media (hover:hover) and (pointer:fine){.tab:hover{color:var(--ink)}}
+.tab:focus-visible{outline:2px solid var(--ultra);outline-offset:-2px}
+.ind{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--ultra);transition:transform .28s var(--ease-io),width .28s var(--ease-io)}
+.ind.instant{transition:none}
+.iconbtn{appearance:none;background:none;border:1px solid transparent;color:var(--muted);width:40px;height:40px;display:grid;place-items:center;cursor:pointer;margin-bottom:3px;flex:none;transition:color .15s var(--ease-ui),border-color .15s var(--ease-ui),scale .15s var(--ease-out)}
+.iconbtn svg{width:16px;height:16px;display:block}
+@media (hover:hover) and (pointer:fine){.iconbtn:hover{color:var(--ink);border-color:var(--line)}}
+.iconbtn:active{scale:.96}
+.iconbtn:focus-visible{outline:2px solid var(--ultra);outline-offset:2px}
+.theme .sun,.theme .moon{grid-area:1/1;transition:opacity .2s var(--ease-ui),scale .2s var(--ease-ui),filter .2s var(--ease-ui)}
+.theme .moon,:root[data-mode="dark"] .theme .sun{opacity:0;scale:.25;filter:blur(4px)}
+:root[data-mode="dark"] .theme .moon{opacity:1;scale:1;filter:blur(0)}
+
+/* stage */
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 392px;min-height:0}
+.vp{position:relative;overflow:hidden;min-height:0;background-color:var(--paper);background-image:radial-gradient(var(--grid) 1px,transparent 1.3px);background-size:22px 22px;cursor:grab;touch-action:none}
+.vp:active{cursor:grabbing}
+.world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+svg.edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+
+/* edges */
+.edge{fill:none;stroke:var(--line);stroke-width:1.2;transition:opacity .25s var(--ease-ui),stroke .15s var(--ease-ui);animation:fadein .5s .12s both}
+@keyframes fadein{from{opacity:0}}
+.edge.root{stroke:var(--ink);stroke-dasharray:2 5;opacity:.45}
+.edge.multi{stroke:var(--diamante);opacity:.6}
+.edge.flow{stroke:var(--ink);stroke-width:1.4}
+.edge.loop{stroke:var(--ultra);stroke-width:1.8;stroke-dasharray:7 5;animation:fadein .5s .12s both,dash 1.6s linear infinite}
+.edge.bridge{stroke:var(--diamante);stroke-width:2;stroke-dasharray:7 5;animation:fadein .5s .12s both,dash 1.6s linear infinite}
+.edge.feed{stroke:var(--muted);stroke-width:1.1;stroke-dasharray:2 4}
+@keyframes dash{to{stroke-dashoffset:-12}}
+.world.focus .edge:not(.on){opacity:.06}
+.world.focus .edge.on.hub{stroke:var(--ultra)}
+.world.focus .edge.on{opacity:1}
+.edge.gone{opacity:0!important;animation:none}
+
+/* cards */
+.card{position:absolute;left:0;top:0;width:164px;padding:7px 10px 9px;background:var(--card);border:1px solid var(--line);cursor:pointer;user-select:none;-webkit-user-select:none;will-change:transform;
+  transition:opacity .25s var(--ease-ui),border-color .15s var(--ease-ui),background-color .15s var(--ease-ui),color .15s var(--ease-ui),box-shadow .2s var(--ease-ui),scale .15s var(--ease-out)}
+.card .meta{display:flex;justify-content:space-between;gap:6px;font-family:var(--f-mono);font-size:9.5px;color:var(--muted);margin-bottom:4px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.card .b{color:var(--ultra)}
+.card .b.red{color:var(--diamante)}
+.card .t{font-size:13px;line-height:1.25;font-weight:500;text-wrap:pretty}
+@media (hover:hover) and (pointer:fine){.card:hover{border-color:var(--ink);box-shadow:0 8px 20px -12px var(--shadow)}}
+.card:active{scale:.96}
+.card.multi{border-color:var(--diamante)}
+.card.multi .meta span:first-child{color:var(--diamante)}
+.card.faded{opacity:.32}
+.card.hit{border-color:var(--ultra);box-shadow:0 0 0 1px var(--ultra)}
+.world.focus .card:not(.on){opacity:.13}
+.world.focus .card.on{border-color:var(--ink);opacity:1}
+.world.focus .card.on.hit{border-color:var(--ultra)}
+.card.sel,.world.focus .card.sel{background:var(--ultra);border-color:var(--ultra);color:var(--on-accent);box-shadow:0 12px 26px -12px var(--shadow)}
+.card.sel .meta,.card.sel .b,.card.sel.multi .meta span:first-child{color:var(--on-accent)}
+.card:focus-visible{outline:2px solid var(--ultra);outline-offset:2px}
+.card.intro{animation:cardin .45s var(--ease-out) both}
+@keyframes cardin{from{opacity:0}}
+
+/* hubs */
+.hub{position:absolute;left:0;top:0;background:var(--ink);color:var(--paper);padding:8px 12px 9px;cursor:pointer;display:flex;gap:9px;align-items:baseline;white-space:nowrap;font-weight:600;font-size:14px;letter-spacing:-.01em;
+  transition:background-color .15s var(--ease-ui),color .15s var(--ease-ui),opacity .25s var(--ease-ui),scale .15s var(--ease-out);animation:fadein .4s var(--ease-out) both}
+.hub .hn,.hub .hc{font-family:var(--f-mono);font-size:10px;font-weight:400;opacity:.72;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.hub.sel{background:var(--ultra);color:var(--on-accent)}
+@media (hover:hover) and (pointer:fine){.hub:not(.root):not(.label):hover{background:var(--ultra);color:var(--on-accent)}}
+.hub:not(.root):not(.label):active{scale:.96}
+.hub:focus-visible{outline:2px solid var(--ultra);outline-offset:3px}
+.hub.root{background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);font-size:15px;padding:9px 15px;cursor:default;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.hub.root small{font-family:var(--f-mono);font-size:9.5px;font-weight:400;color:var(--muted);letter-spacing:.02em}
+.hub.label{background:none;color:var(--muted);font-family:var(--f-mono);font-weight:400;font-size:11px;letter-spacing:.02em;cursor:default;padding:4px 0}
+.world.focus .hub:not(.on):not(.root):not(.label){opacity:.28}
+.hub.gone{opacity:0!important;pointer-events:none}
+
+/* map chrome */
+.find{position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);padding:0 8px 0 10px;height:34px;width:min(320px,calc(100% - 24px));transition:border-color .15s var(--ease-ui);z-index:2}
+.find:focus-within{border-color:var(--ultra)}
+.find svg{width:14px;height:14px;color:var(--muted);flex:none}
+.find input{appearance:none;border:0;background:none;outline:none;color:var(--ink);font:inherit;font-size:13px;flex:1;min-width:0;height:100%}
+.find input::placeholder{color:var(--muted)}
+.find input::-webkit-search-cancel-button{display:none}
+.find .count{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.find kbd{flex:none}
+.find.has kbd{display:none}
+.legend{position:absolute;left:12px;bottom:12px;right:200px;display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);pointer-events:none}
+.legend span{display:inline-flex;align-items:center;gap:6px;background:var(--paper);padding:2px 4px}
+.sw{display:inline-block;width:18px;height:0;border-top:2px solid var(--line)}
+.sw.u{border-top:2px dashed var(--ultra)} .sw.d{border-top:2px dashed var(--diamante)} .sw.m{border-top:2px dotted var(--muted)} .sw.k{border-top:2px solid var(--ink)}
+.sq{display:inline-block;width:11px;height:11px;border:1px solid var(--diamante);background:var(--card)}
+.ctrls{position:absolute;right:12px;bottom:12px;display:flex;gap:4px}
+.ctrls button{position:relative;appearance:none;background:var(--paper);border:1px solid var(--ink);height:36px;min-width:36px;padding:0 10px;font-family:var(--f-mono);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  transition:background-color .15s var(--ease-ui),color .15s var(--ease-ui),scale .15s var(--ease-out)}
+.ctrls button svg{width:14px;height:14px}
+.ctrls button::before{content:"";position:absolute;inset:-4px 0}
+@media (hover:hover) and (pointer:fine){.ctrls button:hover{background:var(--ink);color:var(--paper)}}
+.ctrls button:active{scale:.96}
+.ctrls button:focus-visible{outline:2px solid var(--ultra);outline-offset:2px}
+
+/* peek: leitura do card quando o mapa está afastado */
+.peek{position:fixed;left:0;top:0;z-index:20;width:260px;background:var(--card);border:1px solid var(--ink);padding:10px 12px 12px;pointer-events:none;box-shadow:0 8px 16px -10px var(--shadow);
+  opacity:0;scale:.97;transform-origin:var(--ox,50%) var(--oy,100%);transition:opacity .15s var(--ease-out),scale .15s var(--ease-out)}
+.peek.show{opacity:1;scale:1}
+.peek .pm{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:10px;color:var(--muted);margin-bottom:5px;font-variant-numeric:tabular-nums}
+.peek .pt{font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.01em;margin-bottom:6px;text-wrap:balance}
+.peek .pf{font-size:12.5px;line-height:1.45;color:var(--muted);text-wrap:pretty}
+
+/* panel */
+.panel{border-left:1px solid var(--ink);overflow-y:auto;padding:22px 6px 48px 24px;min-width:0;scrollbar-width:thin}
+.panel .inner{animation:swap .22s var(--ease-out) both}
+@keyframes swap{from{opacity:0;transform:translateY(4px);filter:blur(2px)}}
+.panel h2{font-size:28px;line-height:1.04;font-weight:600;letter-spacing:-.025em;margin:0 0 8px;text-wrap:balance}
+.lede{font-size:15.5px;line-height:1.45;color:var(--muted);margin:0 0 18px;text-wrap:pretty}
+.panel p{font-size:14.5px;line-height:1.55;margin:0 0 12px;max-width:62ch;text-wrap:pretty}
+.panel p b{font-weight:600}
+.sub{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin:0 0 16px;letter-spacing:.02em;display:flex;flex-wrap:wrap;gap:4px 10px}
+.sub .dot::before{content:"·";margin-right:10px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ink);border-bottom:1px solid var(--line);margin:0 0 18px}
+.stats div{padding:12px 8px 12px 0;display:flex;flex-direction:column;gap:5px;min-width:0}
+.stats b{font-size:28px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.stats span{font-size:12px;color:var(--muted);line-height:1.3}
+.sec{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.02em;color:var(--muted);margin:28px 0 2px;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--ink);padding-bottom:6px}
+.row,.lrow,.nrow{appearance:none;background:none;border:0;border-bottom:1px solid var(--line);width:100%;text-align:left;padding:10px 0;cursor:pointer;display:grid;gap:4px 10px;align-items:baseline;transition:background-color .15s var(--ease-ui)}
+@media (hover:hover) and (pointer:fine){.row:hover,.lrow:hover,.nrow:hover{background:var(--tint)}}
+.row{grid-template-columns:40px minmax(0,1fr) auto}
+.row .bar{grid-column:2/4;height:3px;background:var(--grid);display:block}
+.row .bar i{display:block;height:100%;background:var(--ink);transform-origin:0 50%;transition:background-color .15s var(--ease-ui);animation:grow .5s var(--ease-out) both}
+@keyframes grow{from{transform:scaleX(0)}}
+@media (hover:hover) and (pointer:fine){.row:hover .bar i{background:var(--ultra)}}
+.n{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;padding-left:2px}
+.nm{font-weight:500}
+.c{font-family:var(--f-mono);font-size:11px;font-variant-numeric:tabular-nums;padding-right:4px}
+@media (hover:hover) and (pointer:fine){.row:hover .nm,.nrow:hover .nm,.lrow:hover .ln{color:var(--ultra)}}
+.row:focus-visible,.lrow:focus-visible,.nrow:focus-visible,.back:focus-visible{outline:2px solid var(--ultra);outline-offset:2px}
+.lrow{grid-template-columns:28px 112px minmax(0,1fr)}
+.lrow .ln{font-weight:500;font-size:13px}
+.lrow.cur .ln{color:var(--ultra)}
+.gs{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.chip{display:inline-block;font-family:var(--f-mono);font-size:10.5px;border:1px solid var(--line);padding:2px 6px;line-height:1.35}
+.chip.red{border-color:var(--diamante);color:var(--diamante)}
+.chip.blue{border-color:var(--ultra);color:var(--ultra)}
+.chip.dim{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.nrow{grid-template-columns:56px minmax(0,1fr) auto}
+.nrow .nm{font-size:13.5px}
+.dots{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;padding-right:4px}
+.dots i{font-style:normal;color:var(--ultra)}
+.back{appearance:none;background:none;border:0;padding:4px 0;color:var(--ultra);font-family:var(--f-mono);font-size:11px;cursor:pointer;margin:-4px 0 12px;display:inline-flex;align-items:center;gap:6px;transition:gap .15s var(--ease-out)}
+.back svg{width:12px;height:12px}
+@media (hover:hover) and (pointer:fine){.back:hover{gap:9px}}
+.desc{font-size:16px;line-height:1.5;margin:0 0 6px;text-wrap:pretty}
+.chain{list-style:none;margin:0;padding:0}
+.chain li{border-bottom:1px solid var(--line);padding:10px 0;display:grid;grid-template-columns:56px minmax(0,1fr);gap:3px 10px;font-size:13.5px;line-height:1.4}
+.chain li .why{grid-column:2;color:var(--muted);font-size:12.5px}
+.chain li .why::before{content:"→ ";color:var(--ultra)}
+.chain li.red .why::before{color:var(--diamante)}
+.chain li.in .why::before{content:"← "}
+.chain .rel{color:var(--muted)}
+.gap{border-bottom:1px solid var(--line);padding:11px 0 12px}
+.gap h3{font-size:13.5px;font-weight:600;margin:0 0 3px;letter-spacing:-.005em}
+.gap.red h3{color:var(--diamante)}
+.gap p{font-size:13px;margin:0;color:var(--muted);line-height:1.5}
+.hint{font-size:12.5px;color:var(--muted);margin-top:22px;line-height:1.55}
+kbd{font-family:var(--f-mono);font-size:10px;border:1px solid var(--line);padding:0 4px;color:var(--muted);line-height:1.5}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{height:auto}
+  h1{font-size:24px}
+  .brand{padding-bottom:6px}
+  .navwrap{flex:1 1 100%}
+  .tabs{flex:1 1 auto}
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .vp{height:68vh;min-height:400px;border-bottom:1px solid var(--ink)}
+  .panel{border-left:0;padding:20px 0 48px}
+  .legend{right:12px;bottom:52px}
+  .find kbd{display:none}
+  .ctrls button{height:44px;min-width:44px}
+  .find{height:44px}
+  .peek{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-property:opacity,color,background-color,border-color!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Mapa de fraquezas</h1>
+      <div class="byline">Umbro Brasil · Lifestyle — Plano de Marketing ESPM, Grupo 4</div>
+    </div>
+    <div class="navwrap">
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Óticas de leitura"><span class="ind instant" id="ind"></span></nav>
+      <button class="iconbtn theme" id="theme" aria-label="Alternar tema claro e escuro" title="Tema claro/escuro">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="stage">
+    <section class="vp" id="vp" aria-label="Mapa interativo">
+      <div class="world" id="world">
+        <svg class="edges" id="edges" aria-hidden="true">
+          <defs>
+            <marker id="ar-ultra" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ultra)"/></marker>
+            <marker id="ar-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--diamante)"/></marker>
+            <marker id="ar-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+            <marker id="ar-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+          </defs>
+          <g id="edgeLayer"></g>
+        </svg>
+        <div id="hubLayer"></div>
+        <div id="cardLayer"></div>
+      </div>
+      <label class="find" id="find">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+        <input id="q" type="search" placeholder="Buscar fraqueza, código ou tema" autocomplete="off" spellcheck="false" aria-label="Buscar fraqueza">
+        <span class="count" id="qcount" aria-live="polite"></span>
+        <kbd>/</kbd>
+      </label>
+      <div class="legend" id="legend"></div>
+      <div class="ctrls">
+        <button id="zout" aria-label="Diminuir zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+        <button id="zin" aria-label="Aumentar zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></button>
+        <button id="fit" aria-label="Enquadrar o mapa inteiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Enquadrar</button>
+      </div>
+    </section>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </main>
+</div>
+<div class="peek" id="peek" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function(){
+"use strict";
+/* ============================ DADOS ============================ */
+const ORIG={pub:'Público-alvo',pre:'Preço',pra:'Praça',trv:'Transversal',pro:'Promoção',prp:'Propaganda',pdt:'Produto'};
+const TAG={pub:'PUB',pre:'PRE',pra:'PRA',trv:'TRV',pro:'PRO',prp:'PRP',pdt:'PDT'};
+
+/* [id, galho, título curto, descrição] — descrição revisada a partir do texto original do grupo, sem acrescentar fatos. */
+const NODES=[
+ ['pa1','pub','Mulheres incluídas, mas não representadas','As mulheres estão no público da marca, mas não se veem representadas nela.'],
+ ['pa2','pub','Lifestyle caro para a maioria','Parte dos produtos lifestyle tem preço elevado e só é acessível às classes mais altas.'],
+ ['pr1','pre','Lifestyle com preço de básico','A linha lifestyle é precificada como produto básico. As collabs são a exceção.'],
+ ['pr2','pre','Preço incoerente entre canais','O mesmo produto não mantém um preço coerente de um canal de venda para outro.'],
+ ['pr3','pre','Desconto virou rotina','O desconto deixou de ser pontual e passou a ser prática recorrente.'],
+ ['pr4','pre','Sem programa de fidelidade','A marca não tem programa de fidelidade para quem volta a comprar.'],
+ ['pr5','pre','Qualidade percebida como média','O consumidor percebe a qualidade como média, o que impede a marca de praticar preços mais altos.'],
+ ['pr6','pre','Sem controle do preço final','A Umbro não controla totalmente o preço final praticado pelo varejo.'],
+ ['pr7','pre','Nem a mais barata, nem a mais desejada','A marca não vence por preço nem por desejo: fica no meio, sem posição clara.'],
+ ['pc1','pra','Tier 1 quase ausente no PDV','Os produtos Tier 1 quase não aparecem nos pontos de venda físicos.'],
+ ['pc2','pra','Sem loja física própria','Sem canal físico próprio, o consumidor não prova as roupas, a experiência de compra depende do varejista e há poucos varejistas (ex.: Centauro, Netshoes).'],
+ ['pc3','pra','Presença regional encolheu','Com menos patrocínios a times pequenos, a presença regional da marca diminuiu.'],
+ ['pc4','pra','B2B com escolinhas pouco ativo','Não há parceria ativa com escolas de futebol: o B2B se resume à seção “Para sua Equipe” do site.'],
+ ['pc5','pra','Centros de distribuição não divulgados','A marca não divulga onde ficam os seus centros de distribuição.'],
+ ['pm1','pro','Pouca oferta feminina, e sem comunicação','Há poucas ofertas para o público feminino, e as que existem não são comunicadas.'],
+ ['pm2','pro','Tecnologia dos produtos não comunicada','A tecnologia presente nos produtos não chega à comunicação da marca.'],
+ ['pm3','pro','Relacionamento raso com o consumidor','O relacionamento com o consumidor é raso e se limita a collabs e futebol.'],
+ ['pm4','pro','Pouca presença fora do futebol','A marca tem baixa presença fora do território do futebol.'],
+ ['pm5','pro','Poucos canais de comunicação','A comunicação se concentra em poucos canais.'],
+ ['pm6','pro','Diferenciais sem destaque','Os diferenciais dos produtos recebem pouco destaque.'],
+ ['pm7','pro','Comunicação pouco segmentada','A comunicação fala do mesmo jeito com todos os públicos.'],
+ ['pm8','pro','Comunicação dependente do futebol','A comunicação depende da associação com futebol e clubes.'],
+ ['pm9','pro','Pouco uso de influenciadores','A marca usa pouco os influenciadores.'],
+ ['pm10','pro','Outros esportes inexplorados','A marca explora pouco os esportes além do futebol.'],
+ ['pm11','pro','Sustentabilidade não comunicada','Há pouca comunicação sobre sustentabilidade.'],
+ ['pg1','prp','Sem mídia de massa','A marca não está em mídias de massa off-line.'],
+ ['pg2','prp','Mídia de clube encolhendo','A mídia via clubes (off-line) está encolhendo: a herança está saturada.'],
+ ['pg3','prp','Irrelevante no TikTok','A Umbro Brasil tem presença residual no TikTok, e o perfil não gera engajamento.'],
+ ['pg4','prp','Sem creators desde 2020','O último programa com influenciadores registrado é de 2020. As collabs culturais continuaram; o que parou foi o trabalho com creators.'],
+ ['pg5','prp','Instagram engaja, mas não alcança','O Instagram gera engajamento, mas tem alcance baixo.'],
+ ['pg6','prp','YouTube sem audiência','O canal da marca no YouTube não tem audiência.'],
+ ['pg7','prp','Invisível na busca online','A marca não aparece nas buscas por artigos esportivos na internet.'],
+ ['pd1','pdt','Lifestyle subdesenvolvido','A linha lifestyle é pouco desenvolvida em comparação com a linha esportiva.'],
+ ['pd2','pdt','Poucas categorias no lifestyle','A linha lifestyle tem pouca diversidade de categorias.'],
+ ['pd3','pdt','Fora da moda casual e urbana','A marca tem pouca presença no mercado de moda casual e urbana.'],
+ ['pd4','pdt','Novidade depende de collabs','A marca depende de collabs para gerar novidade e relevância cultural.'],
+ ['pd5','pdt','Portfólio inteiro refém do futebol','Todo o portfólio depende do futebol.'],
+ ['pd6','pdt','Poucas modelagens femininas','Há pouca variedade de modelagens e categorias femininas.'],
+ ['pd7','pdt','Lifestyle feminino inexplorado','O lifestyle feminino é pouco explorado.'],
+ ['x1','trv','Imagem inconsistente no varejo','A imagem da marca muda de um ponto de venda para outro, sem padrão.'],
+ ['x2','trv','Sem ferramentas de trade marketing','A Umbro não usa as ferramentas de trade marketing que a concorrência já usa.']
+].map(([id,p,s,f])=>({id,p,s,f}));
+const N=Object.fromEntries(NODES.map(n=>[n.id,n]));
+(()=>{const c={};NODES.forEach(n=>{c[n.p]=(c[n.p]||0)+1;n.tag=TAG[n.p]+'·'+String(c[n.p]).padStart(2,'0');});})();
+
+/* ---- ciclos ---- */
+const LOOPS=[
+ {id:'A',name:'Espiral do preço',c:[620,-200],r:170,ang:[240,300,0,60,120,180],
+  chain:['pm6','pr5','pr1','pr3','pr2','pr7'],
+  why:['Diferencial que não aparece não é percebido.','Qualidade vista como média só sustenta preço de básico.','Preço de básico compete por desconto.','Desconto recorrente quebra a coerência entre canais.','Preço sem âncora deixa a marca sem posição.','Sem desejo, sobra pouca margem para comunicar o diferencial.'],
+  feeds:[['pm2','pr5','Tecnologia não comunicada reforça a leitura de qualidade média.'],['pr6','pr2','Sem controle do preço final, é o varejo que decide a coerência.']],
+  text:'Cada volta tira margem e desejo. O elo mais barato de quebrar é o primeiro: comunicar o diferencial técnico do produto. Sem isso, qualquer ação de preço só acelera o giro.'},
+ {id:'B',name:'Ciclo da invisibilidade',c:[-620,-200],r:150,ang:[270,180,90,0],
+  chain:['pg1','pg7','pc1','x2'],
+  why:['Sem mídia, ninguém busca a marca.','Sem procura, o varejo não abre espaço para o Tier 1.','Sem espaço no PDV, investir em trade não se paga.','Sem trade, o sell-out cai e falta verba para mídia.'],
+  feeds:[['pg3','pg7','Sem TikTok relevante, a marca fica fora de um canal de descoberta.'],['pg5','pg7','Engajamento sem alcance não gera busca nova.'],['pg6','pg7','YouTube sem audiência não alimenta a busca.'],['pc2','pc1','Sem loja própria, a exposição depende só do varejista.']],
+  text:'Sem mídia, ninguém procura. Sem procura, o varejo não expõe o Tier 1. Sem exposição, trade não se paga. Sem sell-out, não há verba para mídia. O elo de entrada é a presença digital própria, que não depende do varejo.'},
+ {id:'C',name:'Armadilha da herança',c:[0,330],r:170,ang:[180,120,60,0,300,240],
+  chain:['pm8','pd5','pd1','pd4','pm3','pm4'],
+  why:['A comunicação só fala de clube, e o portfólio acompanha.','Sem espaço no mix, o lifestyle não se desenvolve.','Sem linha própria forte, a novidade vem de collab.','Collab é evento, não relação contínua.','Sem relação própria, a marca não sai do futebol.','Fora do futebol a marca não existe, então volta a depender dele.'],
+  feeds:[['pg2','pm8','A mídia de clube encolhe, mas segue sendo o único canal que funciona.'],['pd2','pd1','Poucas categorias limitam o lifestyle.'],['pd3','pd1','Sem moda casual, o lifestyle fica sem território.'],['pm10','pm4','Sem outros esportes, falta ponte para fora do futebol.']],
+  text:'A herança do futebol virou prisão. A comunicação só fala de clube, o portfólio acompanha, o lifestyle não cresce, a novidade vem de collab e a relação com o consumidor fica rasa. Fora do futebol a marca não existe, então volta ao futebol. É o ciclo central: alimenta os outros três.'},
+ {id:'D',name:'Ponto cego feminino',c:[-640,570],r:150,ang:[270,180,90,0],
+  chain:['pd6','pm1','pa1','pd7'],
+  why:['Sem modelagem, não há oferta.','Sem oferta comunicada, a mulher não se vê na marca.','Sem consumidora, não há dado de demanda que justifique investir.','Sem investimento, a modelagem não evolui.'],
+  feeds:[['pm7','pm1','Comunicação sem segmentação não fala com a consumidora.']],
+  text:'Sem modelagem feminina não há oferta. Sem oferta comunicada, a mulher não se vê na marca. Sem consumidora, não há dado de demanda que justifique investir. O ciclo volta à modelagem.'}
+];
+const BRIDGES=[
+ ['x2','x1','Sem trade, a imagem no PDV fica sem padrão.'],
+ ['x1','pr7','Imagem inconsistente reforça a marca sem posição.'],
+ ['pd4','pr1','Só a collab escapa do preço de básico, então a linha regular fica presa nele.'],
+ ['pm4','pg7','Fora do futebol, quem busca lifestyle não encontra a Umbro.'],
+ ['pd5','pd7','Portfólio de futebol é masculino por padrão.']
+];
+const LOOPC=Object.fromEntries(LOOPS.map(l=>[l.id,{x:l.c[0],y:l.c[1]}]));
+const CICLO_LINKS=[];
+LOOPS.forEach(lp=>{
+  lp.chain.forEach((id,i)=>CICLO_LINKS.push({a:id,b:lp.chain[(i+1)%lp.chain.length],kind:'loop',why:lp.why[i],loop:lp.id}));
+  lp.feeds.forEach(([s,t,w])=>CICLO_LINKS.push({a:s,b:t,kind:'feed',why:w,loop:lp.id}));
+});
+BRIDGES.forEach(([s,t,w])=>CICLO_LINKS.push({a:s,b:t,kind:'bridge',why:w}));
+
+const ROOT={name:'Share baixo em lifestyle',sub:'Problema central'};
+
+/* ---- óticas ---- */
+const LENSES=[
+ {id:'orig',num:'01',name:'Mapa original',kicker:'Como o grupo organizou as fraquezas, pelos 4Ps.',layout:'columns',perCol:11,root:true,groupLabel:'Galhos',
+  hubs:['pub','pre','pra','trv','pro','prp','pdt'].map(p=>({id:p,code:TAG[p],name:ORIG[p],members:NODES.filter(n=>n.p===p).map(n=>n.id)})),
+  stats:[['41','fraquezas'],['7','galhos'],['44%','em Promoção + Propaganda']],
+  intro:['O mapa atual funciona como inventário, mas ainda não como diagnóstico. A mesma causa aparece espalhada em galhos diferentes: a dependência do futebol surge em Promoção (PRO·04, PRO·08) e em Produto (PDT·05).',
+   'Promoção e Propaganda somam 18 dos 41 itens, então o mapa lê o problema como comunicação. As outras cinco óticas mostram que ele é mais estrutural.',
+   '<b>Ponto de método:</b> no composto de McCarthy, Propaganda faz parte de Promoção. Se o slide mantiver as duas como galhos separados, a banca pode questionar a estrutura.'],
+  legend:'<span><i class="sw k"></i>Galho do mapa original</span>'},
+ {id:'raiz',num:'02',name:'Causas-raiz',kicker:'Por que cada fraqueza existe.',layout:'radial',root:true,groupLabel:'Causas',
+  hubs:[
+   {id:'C3',code:'C3',name:'Vitrine terceirizada',members:['pc1','pc2','pc5','pr6','x1','x2','pr2','pr3'],text:'A Umbro não controla onde é vista. Sem loja própria, sem trade e sem controle do preço final, a experiência da marca é a que o varejista decide entregar. E o varejista expõe o que já gira.'},
+   {id:'C2',code:'C2',name:'Espiral da commodity',members:['pm2','pm6','pm11','pr5','pr1','pr3','pr7','pr2','pa2','pd1'],text:'O valor do produto não é explicado (tecnologia, diferenciais). A qualidade é lida como média, o preço fica de básico e o desconto vira rotina. O resultado é o item PRE·07: nem a mais barata, nem a mais desejada.'},
+   {id:'C1',code:'C1',name:'Monocultura do futebol',members:['pm8','pd5','pm4','pm10','pc3','pc4','pd2','pd3','pm3','pg2','pd1'],text:'A marca fala uma língua só. Portfólio, mídia e relacionamento passam pelo futebol, e a mídia de clube está encolhendo. O lifestyle nunca ganha território próprio e disputa espaço no mesmo campo das líderes de sportswear.'},
+   {id:'C5',code:'C5',name:'Relação alugada',members:['pd4','pg4','pr4','pm3','pg2','pm9','pr1'],text:'Novidade e relacionamento vêm emprestados de terceiros: collabs, clubes, influenciadores. Quando o parceiro sai, a relevância sai junto. Sem programa de fidelidade, não sobra base própria.'},
+   {id:'C4',code:'C4',name:'Silêncio de alcance',members:['pg1','pg3','pg5','pg6','pg7','pm5','pm9','pm7'],text:'Onde há conteúdo, falta alcance (Instagram). Onde deveria haver alcance, a presença é residual (TikTok, YouTube, busca). A marca não tem motor de descoberta fora da torcida.'},
+   {id:'C6',code:'C6',name:'Metade apagada',members:['pa1','pm1','pd6','pd7','pm7'],text:'O feminino falha em cadeia: sem modelagem, sem oferta, sem comunicação, sem consumidora. Não é um problema isolado de Produto ou de Promoção. É uma decisão de público que nunca foi tomada.'}
+  ],
+  stats:[['6','causas-raiz'],['8','nós de encontro'],['41','fraquezas']],
+  intro:['Seis causas explicam as 41 fraquezas. Oito delas pertencem a duas causas ao mesmo tempo: são os <b>nós de encontro</b>, com borda vermelha, puxados para dentro do anel. Uma ação que resolve um nó mexe em duas causas de uma vez.',
+   '<b>Proposta para o Diagnóstico (5,0 pts):</b> usar estas seis causas como galhos da árvore de problemas. Os 4Ps passam a indicar a origem de cada evidência, não a estrutura.'],
+  legend:'<span><i class="sq"></i>Nó de encontro (2 causas)</span><span><i class="sw"></i>Pertence à causa</span>'},
+ {id:'jorn',num:'03',name:'Jornada',kicker:'Em que momento a Umbro perde o consumidor.',layout:'columns',perCol:8,flow:true,groupLabel:'Etapas',
+  hubs:[
+   {id:'J1',code:'J1',name:'Descoberta',sub:'Ser vista',members:['pg1','pg2','pg3','pg4','pg5','pg6','pg7','pm4','pm5','pm8','pm9','pm10'],text:'Sem mídia de massa, sem TikTok relevante, invisível na busca. A marca não entra no radar de quem não é torcedor.'},
+   {id:'J2',code:'J2',name:'Consideração',sub:'Ser desejada',members:['pa1','pm1','pd6','pd7','pm2','pm6','pm7','pm11','pr5','pr7','pd1','pd2','pd3','pd4','pd5'],text:'Quem encontra a marca não acha motivo para escolhê-la: diferencial invisível, lifestyle raso, feminino ausente. É a etapa com mais itens.'},
+   {id:'J3',code:'J3',name:'Compra',sub:'Ser encontrada no PDV',members:['pc1','pc2','x1','x2','pr1','pr2','pr3','pr6','pa2','pc5'],text:'A compra depende do varejista: sem loja própria, sem trade, sem controle do preço final. O Tier 1 quase não aparece.'},
+   {id:'J4',code:'J4',name:'Retorno',sub:'Ser escolhida de novo',members:['pr4','pm3','pc3','pc4'],text:'Sem fidelidade, e com relação só via collab e futebol. Só quatro itens aqui: o grupo quase não mapeou o pós-compra.'}
+  ],
+  stats:[['66%','antes do PDV'],['15','em Consideração'],['4','no pós-compra']],
+  intro:['27 das 41 fraquezas acontecem antes do ponto de venda. O funil vaza em Descoberta e Consideração. Melhorar o PDV antes disso só expõe um produto que ninguém procura.',
+   'Retorno tem só quatro itens. É um ponto cego do próprio mapa: recompra, comunidade e fidelidade quase não foram investigadas. A PE1 é em 6/10: se não houver tempo de pesquisar, vale registrar como limitação e investigar para a PE2.'],
+  legend:'<span><i class="sw k"></i>Ordem da jornada</span>'},
+ {id:'ctrl',num:'04',name:'Controle',kicker:'Quem segura a alavanca de cada fraqueza.',layout:'columns',perCol:10,groupLabel:'Níveis de controle',
+  hubs:[
+   {id:'dass',code:'K1',name:'Grupo Dass decide',members:['pd1','pd2','pd3','pd4','pd6','pd7','pm1','pm2','pm3','pm4','pm5','pm6','pm7','pm9','pm10','pm11','pg1','pg3','pg4','pg6','pa1','pa2','pr1','pr4','pc2','pc4','pc5','x2'],text:'Decisões de portfólio, comunicação, preço de tabela e canal que o licenciado brasileiro pode mudar sozinho, sem negociar com ninguém.'},
+   {id:'var',code:'K2',name:'Negociado com o varejo',members:['pc1','pr2','pr3','pr6','x1'],text:'Alavancas que passam por Centauro, Netshoes e outros varejistas. Mudam com contrato, trade e sell-out.'},
+   {id:'ter',code:'K3',name:'Depende de terceiros',members:['pg2','pc3','pm8','pd5'],text:'Dependem de clubes e patrocínios. Aqui a Umbro reage, não decide.'},
+   {id:'res',code:'K4',name:'Resultado de mercado',members:['pr5','pr7','pg5','pg7'],text:'Métricas de percepção e alcance. Não são alavancas: são consequência das outras colunas. No Diagnóstico, entram como evidência.'}
+  ],
+  stats:[['68%','nas mãos do Grupo Dass'],['9','dependem do varejo ou de terceiros'],['4','são sintomas']],
+  intro:['28 das 41 fraquezas dependem só de decisões do Grupo Dass, licenciado da Umbro no Brasil. Isso reforça o diagnóstico validado pelo grupo: a Umbro não foi empurrada para fora do mercado. Ela ficou parada.',
+   'Para a PE2, é uma boa notícia: são alavancas acionáveis dentro do budget de R$ 2,5 mi. Os quatro itens de Resultado de mercado não entram como causa, entram como prova.'],
+  legend:''},
+ {id:'ciclo',num:'05',name:'Ciclos viciosos',kicker:'Como as fraquezas se alimentam umas às outras.',layout:'loops',groupLabel:'Ciclos',
+  hubs:LOOPS.map(lp=>({id:lp.id,code:'Ciclo '+lp.id,name:lp.name,members:[...lp.chain,...lp.feeds.map(f=>f[0])],text:lp.text,loop:lp})),
+  stats:[['4','ciclos fechados'],['20','fraquezas nos elos'],['5','pontes entre ciclos']],
+  intro:['As fraquezas não se somam, elas se retroalimentam. Quatro ciclos fechados concentram 20 das 41 fraquezas. As setas vermelhas são pontes: pontos onde um ciclo alimenta o outro. A Armadilha da herança (C) fica no centro e alimenta os outros três.',
+   'Quebrar um ciclo no elo certo vale mais do que corrigir itens soltos. Os nove itens apagados, na base do mapa, não participam de nenhum ciclo e são candidatos a prioridade baixa.'],
+  legend:'<span><i class="sw u"></i>Elo do ciclo</span><span><i class="sw d"></i>Ponte entre ciclos</span><span><i class="sw m"></i>Alimenta o ciclo</span>'},
+ {id:'aud',num:'06',name:'Auditoria',kicker:'O que corrigir no mapa antes do Diagnóstico.',layout:'columns',perCol:11,groupLabel:'Veredito',
+  hubs:[
+   {id:'fundir',code:'A1',name:'Fundir',sub:'Duplicatas',members:['pm2','pm6','pm8','pd5','pm4','pm1','pd6','pd7','pr2','pr6','x1'],text:'Onze itens dizem quatro coisas. <b>F1:</b> tecnologia e diferencial invisíveis. <b>F2:</b> dependência do futebol (aparece duas vezes em Promoção e uma em Produto). <b>F3:</b> feminino sem produto nem oferta. <b>F4:</b> sem controle do ponto de venda. Cada grupo vira um item só, com a evidência mais forte.'},
+   {id:'contra',code:'A2',name:'Contradição',sub:'Resolver antes da banca',members:['pa2','pr1','pc4'],text:'<b>X1:</b> PUB·02 diz que o lifestyle é caro; PRE·01 diz que ele é precificado como básico. Lidas juntas, as duas frases se anulam. Saída: separar collab (preço alto, volume baixo) da linha regular (preço de básico). <b>T1:</b> PRA·04 pede mais futebol, o que reforça a Monocultura. Só se sustenta como canal Tier 2 (várzea e futsal). O relatório também se contradiz aqui: a p.33 diz que não há B2B, a p.30 descreve a seção “Para sua Equipe”.'},
+   {id:'sint',code:'A3',name:'Sintoma',sub:'Usar como evidência',members:['pr5','pr7','pg5','pg6','pg7'],text:'Descrevem o resultado, não a causa. Entram no Diagnóstico como dado que prova as causas, com fonte ABNT.'},
+   {id:'baixo',code:'A4',name:'Baixo impacto',sub:'Cortar ou justificar',members:['pc5','pm11'],text:'Sem ligação clara com o share de vestuário lifestyle entre os Streetheads. Cortar, ou manter só com dado que prove o efeito.'},
+   {id:'manter',code:'A5',name:'Manter',sub:'Causas reais',members:['pa1','pr3','pr4','pc1','pc2','pc3','pm3','pm5','pm7','pm9','pm10','pg1','pg2','pg3','pg4','pd1','pd2','pd3','pd4','x2'],text:'Causas reais e distintas. São a base da árvore de problemas.'}
+  ],
+  stats:[['41 → 26','causas após a limpeza'],['11','duplicatas'],['1','contradição']],
+  intro:['O mapa tem ruído que custa nota. Onze itens são duplicatas (quatro grupos), um par se contradiz, cinco são sintomas e dois têm pouco efeito sobre o share. Limpo, ele vira 26 causas e 5 evidências.',
+   'O risco maior é a contradição X1: “lifestyle caro” e “lifestyle com preço de básico” não valem ao mesmo tempo sem separar collab de linha regular.',
+   'Cada item que ficar precisa de fonte ABNT (1,5 pt). Itens como “sem creators desde 2020” e “irrelevante no TikTok” pedem print datado ou dado de ferramenta.',
+   'No fim deste painel estão oito pontos que o relatório já documenta e o mapa ainda não cobre, e quatro inconsistências do relatório para conferir antes da banca.'],
+  gaps:[
+   ['Queda de faturamento no vestuário','É a evidência mais forte do problema central e não aparece no mapa: −14,8% no vestuário entre 2020 e 2025 (Relatório, p.6 e p.11–12). Entra como dado na raiz da árvore.'],
+   ['Collabs sem plataforma de marca','Cada collab termina em si mesma e não acumula memória: falta uma plataforma ou assinatura própria (p.34 e p.37). Reforça C5 Relação alugada.'],
+   ['Perda de parceiros culturais','A 3ª edição de Santos × Charlie Brown Jr. saiu por outra marca (p.35). É prova concreta da Relação alugada.'],
+   ['Herança travada','O uso do tetra de 1994 esbarra em CBF e Nike, e o “Only Football” está parado (p.36). Alimenta a Armadilha da herança (ciclo C).'],
+   ['PDV desigual entre praças','Espaço dedicado na Centauro Jundiaí, fundo de loja no Morumbi, nenhum item na Artwalk (p.34). Evidência para PRA·01 e TRV·01.'],
+   ['Ruptura de estoque','Edições limitadas esgotam sem reposição (p.33). Cabe em C3 Vitrine terceirizada e na etapa Compra.'],
+   ['Dependência do licenciamento','Troca de licenciado traz risco de descontinuidade e de imagem inconsistente (p.30). Cabe em K3 Depende de terceiros.'],
+   ['Pouca atração de Gen Z e de mulheres','Statista 2024: awareness de 76%, mas popularidade de 30% e buzz de 17%. Gen Z que gosta da marca: 24%, contra 30% no setor. Homens 56%, mulheres 43%. Fonte pronta, ainda não citada no relatório.']
+  ],
+  checks:[
+   ['Frequência de desconto','A p.8 fala em desconto frequente; a p.33, em promoções discretas. PRE·03 só se sustenta pela p.8. Alinhar antes da banca.'],
+   ['Persona x público','A persona é o Vitor, homem de 26 anos (p.29), enquanto os Streetheads são 58% mulheres. O próprio relatório repete a fraqueza que o mapa aponta.'],
+   ['Fidelidade','O Statista mostra 70% de lealdade entre quem já tem a marca. O problema parece estar mais na conversão do que na retenção: relativiza PRE·04 e PRO·03.'],
+   ['Erro de unidade na p.11','A tabela de valor de mercado dá R$ 12.272,65 mi para a Umbro no vestuário. O valor coerente é cerca de R$ 122,7 mi (0,1% × R$ 122.726 mi).']
+  ],
+  legend:'<span>F = fundir</span><span>X = contradição</span><span>T = tensão</span>'}
+];
+const LENS=Object.fromEntries(LENSES.map(l=>[l.id,l]));
+const AUD_BADGE={pm2:'F1',pm6:'F1',pm8:'F2',pd5:'F2',pm4:'F2',pm1:'F3',pd6:'F3',pd7:'F3',pr2:'F4',pr6:'F4',x1:'F4',pa2:'X1',pr1:'X1',pc4:'T1'};
+
+/* membership */
+const MEM={};
+LENSES.forEach(L=>{MEM[L.id]={};NODES.forEach(n=>MEM[L.id][n.id]=[]);L.hubs.forEach(h=>h.members.forEach(id=>{if(!MEM[L.id][id].includes(h.id))MEM[L.id][id].push(h.id);}));});
+function cicloRole(id){
+  for(const lp of LOOPS){if(lp.chain.includes(id))return{t:'elo',lp};}
+  for(const lp of LOOPS){if(lp.feeds.some(f=>f[0]===id))return{t:'alimenta',lp};}
+  if(id==='x1')return{t:'ponte'};
+  return{t:'fora'};
+}
+
+/* ============================ ESTADO ============================ */
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const HOVER=matchMedia('(hover: hover) and (pointer: fine)').matches;
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const vp=$('vp'),world=$('world'),edgeLayer=$('edgeLayer'),hubLayer=$('hubLayer'),cardLayer=$('cardLayer'),panel=$('panel'),
+      tabsEl=$('tabs'),ind=$('ind'),legend=$('legend'),peek=$('peek'),q=$('q'),qcount=$('qcount'),findEl=$('find');
+let cur=null,layout=null,sel=null,hov=null,srch=null,CH=58,first=true,curK=1,zoomedIn=false;
+const CW=164;
+const ARROW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
+
+/* ============================ TEMA ============================ */
+const root=document.documentElement;
+function sysDark(){return matchMedia('(prefers-color-scheme: dark)').matches;}
+function syncMode(){const t=root.dataset.theme;root.dataset.mode=t?t:(sysDark()?'dark':'light');}
+try{const t=localStorage.getItem('mapa-umbro-tema');if(t==='light'||t==='dark')root.dataset.theme=t;}catch(e){}
+syncMode();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncMode);
+$('theme').addEventListener('click',()=>{
+  const next=root.dataset.mode==='dark'?'light':'dark';
+  const s=document.createElement('style');s.textContent='*:not(.theme):not(.theme *),*::before,*::after{transition:none!important}';document.head.appendChild(s);
+  root.dataset.theme=next;syncMode();try{localStorage.setItem('mapa-umbro-tema',next);}catch(e){}
+  void document.body.offsetHeight;requestAnimationFrame(()=>requestAnimationFrame(()=>s.remove()));
+});
+
+/* ============================ CARDS ============================ */
+NODES.forEach((n,i)=>{
+  const el=document.createElement('div');
+  el.className='card intro';el.style.animationDelay=Math.min(i*12,360)+'ms';
+  el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label',n.tag+', '+n.s+'. '+n.f);
+  el.innerHTML='<div class="meta"><span>'+n.tag+'</span><span class="b"></span></div><div class="t">'+n.s+'</div>';
+  el.addEventListener('click',e=>{e.stopPropagation();select({type:'node',id:n.id});});
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select({type:'node',id:n.id});}});
+  if(HOVER){el.addEventListener('mouseenter',()=>{hover({type:'node',id:n.id});showPeek(n);});el.addEventListener('mouseleave',()=>{hover(null);hidePeek();});}
+  cardLayer.appendChild(el);n.el=el;n.badge=el.querySelector('.b');
+  const a=Math.random()*Math.PI*2;n.x=Math.cos(a)*30;n.y=Math.sin(a)*30;n.vx=0;n.vy=0;
+});
+function measure(){NODES.forEach(n=>{n.w=n.el.offsetWidth;n.h=n.el.offsetHeight;});CH=Math.max(...NODES.map(n=>n.h));}
+
+/* ============================ PEEK ============================ */
+/* Com o mapa afastado o texto dos cards fica pequeno demais: o peek mostra a ficha em tamanho de leitura. */
+let peekT;
+function showPeek(n){
+  if(curK>=.9){hidePeek();return;}
+  clearTimeout(peekT);
+  const r=n.el.getBoundingClientRect(),b=badgeFor(cur,n);
+  peek.innerHTML='<div class="pm"><span>'+n.tag+' · '+ORIG[n.p]+'</span><span>'+(b.t||'')+'</span></div><div class="pt">'+n.s+'</div><div class="pf">'+n.f+'</div>';
+  const pw=260,ph=peek.offsetHeight||120,gap=10;
+  let x=r.left+r.width/2-pw/2,y=r.top-ph-gap,oy='100%';
+  if(y<8){y=r.bottom+gap;oy='0%';}
+  x=Math.max(8,Math.min(innerWidth-pw-8,x));
+  peek.style.left=x+'px';peek.style.top=y+'px';
+  peek.style.setProperty('--ox',(r.left+r.width/2-x)+'px');peek.style.setProperty('--oy',oy);
+  const wasShown=peek.classList.contains('show');
+  if(!wasShown)peek.classList.add('show');
+}
+function hidePeek(){peekT=setTimeout(()=>peek.classList.remove('show'),60);}
+
+/* ============================ LAYOUTS ============================ */
+function layoutColumns(L){
+  const colW=CW+18,gap=66,rowH=CH+12,perCol=L.perCol||9;
+  const hubs={},targets={},links=[];let x=0;
+  L.hubs.forEach(h=>{
+    const n=h.members.length,cols=Math.max(1,Math.ceil(n/perCol)),rows=Math.ceil(n/cols),w=cols*colW,hx=x+w/2;
+    hubs[h.id]={x:hx,y:0};
+    h.members.forEach((id,i)=>{const c=Math.floor(i/rows),r=i%rows;targets[id]={x:hx+(c-(cols-1)/2)*colW,y:90+r*rowH};links.push({a:id,b:'h:'+h.id,kind:'hub'});});
+    x+=w+gap;
+  });
+  const sh=(x-gap)/2;for(const k in hubs)hubs[k].x-=sh;for(const k in targets)targets[k].x-=sh;
+  if(L.root){hubs.__root={x:0,y:-130,root:true};L.hubs.forEach(h=>links.push({a:'h:__root',b:'h:'+h.id,kind:'root'}));}
+  if(L.flow){for(let i=0;i<L.hubs.length-1;i++)links.push({a:'h:'+L.hubs[i].id,b:'h:'+L.hubs[i+1].id,kind:'flow'});}
+  return{hubs,targets,links,strength:.4,faded:new Set()};
+}
+function layoutRadial(L){
+  const R=470,hubs={},targets={},links=[],n=L.hubs.length;
+  L.hubs.forEach((h,i)=>{const a=(-90+i*360/n)*Math.PI/180;hubs[h.id]={x:R*Math.cos(a),y:R*Math.sin(a)};});
+  NODES.forEach(nd=>{
+    const hs=MEM[L.id][nd.id];
+    if(hs.length===1){const p=hubs[hs[0]];targets[nd.id]={x:p.x*1.4,y:p.y*1.4};}
+    else{let mx=0,my=0;hs.forEach(h=>{mx+=hubs[h].x;my+=hubs[h].y;});mx/=hs.length;my/=hs.length;const f=Math.hypot(mx,my)<R*.6?.9:.74;targets[nd.id]={x:mx*f,y:my*f};}
+    hs.forEach(h=>links.push({a:nd.id,b:'h:'+h,kind:hs.length>1?'multi':'hub'}));
+  });
+  hubs.__root={x:0,y:0,root:true};L.hubs.forEach(h=>links.push({a:'h:__root',b:'h:'+h.id,kind:'root'}));
+  return{hubs,targets,links,strength:.12,faded:new Set()};
+}
+function layoutLoops(L){
+  const hubs={},targets={},faded=new Set();
+  LOOPS.forEach(lp=>{const[cx,cy]=lp.c;hubs[lp.id]={x:cx,y:cy};
+    lp.chain.forEach((id,i)=>{const a=lp.ang[i]*Math.PI/180;targets[id]={x:cx+lp.r*Math.cos(a),y:cy+lp.r*Math.sin(a)};});});
+  LOOPS.forEach(lp=>{const[cx,cy]=lp.c;const seen={};
+    lp.feeds.forEach(([s,t])=>{const tp=targets[t],same=lp.feeds.filter(f=>f[1]===t).length,k=seen[t]=(seen[t]||0)+1;
+      const dx=tp.x-cx,dy=tp.y-cy,d=Math.hypot(dx,dy)||1,ox=dx/d,oy=dy/d,tg=(k-1)-(same-1)/2;
+      targets[s]={x:tp.x+ox*196-oy*tg*72,y:tp.y+oy*196+ox*tg*72};});});
+  targets.x1={x:0,y:-200};
+  const rest=NODES.filter(n=>!targets[n.id]);
+  rest.forEach((n,i)=>{targets[n.id]={x:(i-(rest.length-1)/2)*180,y:900};faded.add(n.id);});
+  hubs.__rest={x:0,y:836,label:true,name:'Fora dos ciclos · '+rest.length+' itens'};
+  return{hubs,targets,links:CICLO_LINKS.map(l=>({...l})),strength:.3,faded};
+}
+
+/* ============================ FÍSICA ============================ */
+function rectCollide(){
+  let nodes=[],obs=[];const pad=10,k=.55;
+  function force(){
+    for(let i=0;i<nodes.length;i++){const a=nodes[i];
+      for(let j=i+1;j<nodes.length;j++){const b=nodes[j];
+        const dx=(b.x+b.vx)-(a.x+a.vx),dy=(b.y+b.vy)-(a.y+a.vy);
+        const ox=(a.w+b.w)/2+pad-Math.abs(dx),oy=(a.h+b.h)/2+pad-Math.abs(dy);
+        if(ox>0&&oy>0){if(ox<oy){const s=ox*k/2*(dx<0?-1:1);a.vx-=s;b.vx+=s;}else{const s=oy*k/2*(dy<0?-1:1);a.vy-=s;b.vy+=s;}}
+      }
+      for(const o of obs){const dx=(a.x+a.vx)-o.x,dy=(a.y+a.vy)-o.y;
+        const ox=(a.w+o.w)/2+pad-Math.abs(dx),oy=(a.h+o.h)/2+pad-Math.abs(dy);
+        if(ox>0&&oy>0){if(ox<oy)a.vx+=ox*k*(dx<0?-1:1);else a.vy+=oy*k*(dy<0?-1:1);}}
+    }
+  }
+  force.initialize=n=>{nodes=n;};force.obstacles=o=>{obs=o;return force;};return force;
+}
+const collide=rectCollide();
+/* A física roda inteira fora da tela; os cards só fazem a viagem final, com duração fixa e easing. */
+const sim=d3.forceSimulation(NODES).velocityDecay(.36).alphaDecay(.03).force('c',collide).stop();
+let tw=null;
+function relayout(dur){
+  if(tw){tw.stop();tw=null;}
+  const from=NODES.map(n=>[n.x,n.y]);
+  sim.alpha(1);for(let i=0;i<320;i++)sim.tick();
+  NODES.forEach(n=>{n.ex=n.x;n.ey=n.y;n.vx=0;n.vy=0;});
+  if(!dur||RM){draw();return;}
+  NODES.forEach((n,i)=>{n.x=from[i][0];n.y=from[i][1];});
+  const ease=d3.easeCubicInOut,st=NODES.map((n,i)=>(i%12)*8);
+  tw=d3.timer(el=>{let done=true;
+    NODES.forEach((n,i)=>{const t=Math.min(1,Math.max(0,(el-st[i])/dur));if(t<1)done=false;const e=ease(t);
+      n.x=from[i][0]+(n.ex-from[i][0])*e;n.y=from[i][1]+(n.ey-from[i][1])*e;});
+    draw();if(done){tw.stop();tw=null;}});
+}
+
+/* ============================ DESENHO ============================ */
+function ep(ref){return ref.startsWith('h:')?layout.hubs[ref.slice(2)]:N[ref];}
+function clip(r,p,extra){const dx=p.x-r.x,dy=p.y-r.y;if(!dx&&!dy)return{x:r.x,y:r.y};
+  const tx=dx?(r.w/2)/Math.abs(dx):Infinity,ty=dy?(r.h/2)/Math.abs(dy):Infinity,t=Math.min(tx,ty),L=Math.hypot(dx,dy);
+  return{x:r.x+dx*t+dx/L*extra,y:r.y+dy*t+dy/L*extra};}
+function edgePath(l){
+  const A=ep(l.a),B=ep(l.b);if(!A||!B)return'';
+  if(l.kind==='loop'){
+    const c=LOOPC[l.loop],mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy)||1;
+    let nx=-dy/len,ny=dx/len;if(Math.hypot(mx+nx*10-c.x,my+ny*10-c.y)<Math.hypot(mx-c.x,my-c.y)){nx=-nx;ny=-ny;}
+    const q={x:mx+nx*len*.2,y:my+ny*len*.2},s=clip(A,q,3),e=clip(B,q,5);
+    return'M'+s.x+','+s.y+' Q'+q.x+','+q.y+' '+e.x+','+e.y;
+  }
+  if(l.kind==='feed'||l.kind==='bridge'||l.kind==='flow'){const s=clip(A,B,3),e=clip(B,A,5);return'M'+s.x+','+s.y+' L'+e.x+','+e.y;}
+  return'M'+A.x+','+A.y+' L'+B.x+','+B.y;
+}
+function draw(){
+  for(const n of NODES)n.el.style.transform='translate('+(n.x-n.w/2)+'px,'+(n.y-n.h/2)+'px)';
+  for(const l of layout.links)l.el.setAttribute('d',edgePath(l));
+}
+function placeHubs(){for(const p of Object.values(layout.hubs)){p.w=p.el.offsetWidth;p.h=p.el.offsetHeight;p.el.style.transform='translate('+(p.x-p.w/2)+'px,'+(p.y-p.h/2)+'px)';}}
+
+/* ============================ ZOOM ============================ */
+const zoom=d3.zoom().scaleExtent([.12,2.6]).on('zoom',e=>{const t=e.transform;curK=t.k;
+  world.style.transform='translate('+t.x+'px,'+t.y+'px) scale('+t.k+')';
+  vp.style.backgroundSize=(22*t.k)+'px '+(22*t.k)+'px';vp.style.backgroundPosition=t.x+'px '+t.y+'px';
+  if(e.sourceEvent)peek.classList.remove('show');});
+const vpSel=d3.select(vp).call(zoom).on('dblclick.zoom',null);
+function chromeInsets(){const top=findEl.offsetHeight+18,bottom=52;return{top,bottom};}
+function frame(box,dur,maxK){
+  const W=vp.clientWidth,H=vp.clientHeight;if(!W||!H)return;
+  const{top,bottom}=chromeInsets(),pad=28;
+  const k=Math.min((W-pad*2)/(box.x1-box.x0),(H-top-bottom-pad)/(box.y1-box.y0),maxK);
+  const tx=W/2-k*(box.x0+box.x1)/2,ty=top+(H-top-bottom)/2-k*(box.y0+box.y1)/2;
+  const T=d3.zoomIdentity.translate(tx,ty).scale(k);
+  vpSel.interrupt();
+  if(!dur||RM)vpSel.call(zoom.transform,T);else vpSel.transition().duration(dur).ease(d3.easeCubicInOut).call(zoom.transform,T);
+}
+function boxOf(ids,hids){
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  ids.forEach(id=>{const n=N[id],x=n.ex,y=n.ey;x0=Math.min(x0,x-n.w/2);x1=Math.max(x1,x+n.w/2);y0=Math.min(y0,y-n.h/2);y1=Math.max(y1,y+n.h/2);});
+  hids.forEach(id=>{const h=layout.hubs[id];if(!h)return;x0=Math.min(x0,h.x-h.w/2);x1=Math.max(x1,h.x+h.w/2);y0=Math.min(y0,h.y-h.h/2);y1=Math.max(y1,h.y+h.h/2);});
+  return{x0,y0,x1,y1};
+}
+function fit(dur){
+  const b=boxOf(NODES.map(n=>n.id),Object.keys(layout.hubs));
+  zoomedIn=false;frame(b,dur,1.3);
+}
+function zoomToHub(h){
+  const hids=[h.id];if(cur.layout==='radial'||cur.layout==='columns')hids.push('__root');
+  const ids=h.members.slice();
+  if(cur.id==='ciclo'){CICLO_LINKS.forEach(l=>{if(l.kind==='bridge'&&(h.members.includes(l.a)||h.members.includes(l.b))){ids.push(l.a,l.b);}});}
+  const b=boxOf([...new Set(ids)],hids.filter(id=>layout.hubs[id]&&id!=='__root'));
+  b.x0-=24;b.x1+=24;b.y0-=24;b.y1+=24;
+  zoomedIn=true;frame(b,650,1.15);
+}
+function ensureVisible(n){
+  const t=d3.zoomTransform(vp),W=vp.clientWidth,H=vp.clientHeight,{top,bottom}=chromeInsets();
+  const sx=t.applyX(n.ex),sy=t.applyY(n.ey),m=60;
+  if(sx>m&&sx<W-m&&sy>top+m/2&&sy<H-bottom-m/2)return;
+  vpSel.interrupt();
+  if(RM)vpSel.call(zoom.translateTo,n.ex,n.ey);else vpSel.transition().duration(450).ease(d3.easeCubicInOut).call(zoom.translateTo,n.ex,n.ey);
+}
+$('fit').onclick=()=>fit(650);
+$('zin').onclick=()=>{vpSel.interrupt();vpSel.transition().duration(RM?0:220).ease(d3.easeCubicOut).call(zoom.scaleBy,1.3);};
+$('zout').onclick=()=>{vpSel.interrupt();vpSel.transition().duration(RM?0:220).ease(d3.easeCubicOut).call(zoom.scaleBy,1/1.3);};
+
+/* ============================ TROCA DE ÓTICA ============================ */
+LENSES.forEach((L,i)=>{const b=document.createElement('button');b.className='tab';b.setAttribute('role','tab');b.dataset.l=L.id;b.title=L.name+' (tecla '+(i+1)+')';
+  b.innerHTML='<span class="n">'+L.num+'</span><span class="l">'+L.name+'</span>';b.onclick=()=>setLens(L.id,true);tabsEl.appendChild(b);});
+function moveInd(){const t=tabsEl.querySelector('[aria-selected="true"]');if(!t)return;ind.style.width=t.offsetWidth+'px';ind.style.transform='translateX('+t.offsetLeft+'px)';}
+
+function badgeFor(L,n){
+  if(L.id==='raiz'&&MEM.raiz[n.id].length>1)return{t:'×2',red:true};
+  if(L.id==='ciclo'){const r=cicloRole(n.id);if(r.t==='elo')return{t:r.lp.id};if(r.t==='alimenta')return{t:'→'+r.lp.id};if(r.t==='ponte')return{t:'B→A',red:true};return{t:''};}
+  if(L.id==='aud'&&AUD_BADGE[n.id]){const b=AUD_BADGE[n.id];return{t:b,red:b[0]!=='F'};}
+  return{t:''};
+}
+function hubObj(L,id){return L.hubs.find(h=>h.id===id);}
+
+function setLens(id,keepNode){
+  const L=LENS[id];if(!L||cur===L)return;cur=L;
+  tabsEl.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.l===id)));moveInd();
+  const act=tabsEl.querySelector('[aria-selected="true"]');if(act&&act.scrollIntoView)act.scrollIntoView({block:'nearest',inline:'nearest'});
+  layout=L.layout==='columns'?layoutColumns(L):L.layout==='radial'?layoutRadial(L):layoutLoops(L);
+  hidePeek();
+  // hubs
+  hubLayer.querySelectorAll('.hub').forEach(el=>{el.classList.add('gone');setTimeout(()=>el.remove(),260);});
+  for(const[hid,p]of Object.entries(layout.hubs)){
+    const el=document.createElement('div');
+    if(p.root){el.className='hub root';el.innerHTML='<small>'+ROOT.sub+'</small><span>'+ROOT.name+'</span>';}
+    else if(p.label){el.className='hub label';el.textContent=p.name;}
+    else{const h=hubObj(L,hid);el.className='hub';el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label',h.code+', '+h.name+', '+h.members.length+' itens');
+      el.innerHTML='<span class="hn">'+h.code+'</span><span>'+h.name+'</span><span class="hc">'+h.members.length+'</span>';
+      el.addEventListener('click',e=>{e.stopPropagation();select({type:'hub',id:hid});});
+      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select({type:'hub',id:hid});}});
+      if(HOVER){el.addEventListener('mouseenter',()=>hover({type:'hub',id:hid}));el.addEventListener('mouseleave',()=>hover(null));}}
+    hubLayer.appendChild(el);p.el=el;
+  }
+  placeHubs();
+  collide.obstacles(Object.values(layout.hubs));
+  // cards
+  NODES.forEach(n=>{const t=layout.targets[n.id];n.tx=t.x;n.ty=t.y;
+    n.el.classList.toggle('faded',layout.faded.has(n.id));
+    n.el.classList.toggle('multi',L.id==='raiz'&&MEM.raiz[n.id].length>1);
+    const b=badgeFor(L,n);n.badge.textContent=b.t;n.badge.classList.toggle('red',!!b.red);});
+  sim.force('x',d3.forceX(d=>d.tx).strength(layout.strength)).force('y',d3.forceY(d=>d.ty).strength(layout.strength));
+  // edges
+  edgeLayer.querySelectorAll('.edge').forEach(el=>{el.classList.add('gone');setTimeout(()=>el.remove(),260);});
+  layout.links.forEach(l=>{const p=document.createElementNS(NS,'path');p.setAttribute('class','edge '+l.kind);
+    const m={loop:'ar-ultra',bridge:'ar-red',feed:'ar-muted',flow:'ar-ink'}[l.kind];if(m)p.setAttribute('marker-end','url(#'+m+')');
+    edgeLayer.appendChild(p);l.el=p;});
+  legend.innerHTML=L.legend||'';
+  if(!(keepNode&&sel&&sel.type==='node'))sel=null;hov=null;
+  applyFocus();renderPanel();
+  relayout(first?0:700);
+  fit(first?0:700);first=false;
+  try{history.replaceState(null,'','#'+id);}catch(e){}
+}
+
+/* ============================ FOCO ============================ */
+function focusSet(f){
+  if(!f)return null;const on=new Set(),onH=new Set(),onE=new Set();
+  if(f.type==='search'){f.ids.forEach(id=>on.add(id));return{on,onH,onE};}
+  if(f.type==='node'){on.add(f.id);layout.links.forEach(l=>{if(l.a===f.id||l.b===f.id){onE.add(l);const o=l.a===f.id?l.b:l.a;if(o.startsWith('h:'))onH.add(o.slice(2));else on.add(o);}});}
+  else{const h=hubObj(cur,f.id);if(!h)return null;onH.add(f.id);h.members.forEach(id=>on.add(id));
+    layout.links.forEach(l=>{if(l.a==='h:'+f.id||l.b==='h:'+f.id||(l.loop&&l.loop===f.id))onE.add(l);});}
+  return{on,onH,onE};
+}
+function applyFocus(){
+  const f=focusSet(hov||srch||sel);world.classList.toggle('focus',!!f);
+  const hits=srch?new Set(srch.ids):null;
+  NODES.forEach(n=>{n.el.classList.toggle('on',!!f&&f.on.has(n.id));n.el.classList.toggle('sel',!!sel&&sel.type==='node'&&sel.id===n.id);n.el.classList.toggle('hit',!!hits&&hits.has(n.id));});
+  for(const[id,p]of Object.entries(layout.hubs)){p.el.classList.toggle('on',!!f&&f.onH.has(id));p.el.classList.toggle('sel',!!sel&&sel.type==='hub'&&sel.id===id);}
+  layout.links.forEach(l=>l.el.classList.toggle('on',!!f&&f.onE.has(l)));
+}
+function select(s){
+  if(s&&sel&&s.type===sel.type&&s.id===sel.id)s=null;
+  const prev=sel;sel=s;hov=null;applyFocus();renderPanel();hidePeek();
+  if(s&&s.type==='hub'){const h=hubObj(cur,s.id);if(h)zoomToHub(h);}
+  else if(s&&s.type==='node'){ensureVisible(N[s.id]);}
+  else if(!s&&prev&&zoomedIn){fit(600);}
+  if(s&&matchMedia('(max-width:900px)').matches)panel.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});
+}
+function hover(h){hov=h;applyFocus();}
+vp.addEventListener('click',e=>{if(!e.target.closest('.card,.hub,.ctrls,.find')&&sel){select(null);}});
+
+/* ============================ BUSCA ============================ */
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+NODES.forEach(n=>{n.hay=norm([n.tag,n.tag.replace('·',''),n.s,n.f,ORIG[n.p]].join(' '));});
+function runSearch(){
+  const v=norm(q.value.trim());findEl.classList.toggle('has',!!q.value);
+  if(!v){srch=null;qcount.textContent='';applyFocus();return;}
+  const terms=v.split(/\s+/);
+  const ids=NODES.filter(n=>terms.every(t=>n.hay.includes(t))).map(n=>n.id);
+  srch={type:'search',ids};
+  qcount.textContent=ids.length?(ids.length===1?'1 item':ids.length+' itens'):'Nenhum item';
+  applyFocus();
+}
+q.addEventListener('input',runSearch);
+q.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&srch&&srch.ids.length){e.preventDefault();const id=srch.ids[0];q.value='';runSearch();q.blur();sel=null;select({type:'node',id});}
+  if(e.key==='Escape'){e.stopPropagation();q.value='';runSearch();q.blur();}
+});
+
+/* ============================ PAINEL ============================ */
+function countBy(ids,fn){const m=new Map();ids.forEach(id=>fn(id).forEach(k=>m.set(k,(m.get(k)||0)+1)));return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
+function nodeBtn(id,extra){const n=N[id];return'<button class="nrow" data-node="'+id+'"><span class="n">'+n.tag+'</span><span class="nm">'+n.s+'</span><span class="dots">'+(extra||'')+'</span></button>';}
+const plural=(n,s,p)=>n+' '+(n===1?s:p);
+
+function lensPanel(L){
+  const max=Math.max(...L.hubs.map(h=>h.members.length));
+  let html='<h2>'+L.name+'</h2><p class="lede">'+L.kicker+'</p>'+
+   '<div class="stats">'+L.stats.map(s=>'<div><b>'+s[0]+'</b><span>'+s[1]+'</span></div>').join('')+'</div>'+
+   L.intro.map(p=>'<p>'+p+'</p>').join('')+
+   '<div class="sec"><span>'+L.groupLabel+'</span><span>Itens</span></div>'+
+   L.hubs.map((h,i)=>'<button class="row" data-hub="'+h.id+'"><span class="n">'+h.code.replace('Ciclo ','')+'</span><span class="nm">'+h.name+'</span><span class="c">'+h.members.length+'</span><span class="bar"><i style="width:'+(h.members.length/max*100).toFixed(1)+'%;animation-delay:'+(i*40)+'ms"></i></span></button>').join('');
+  if(L.gaps&&L.gaps.length)html+='<div class="sec"><span>O que o relatório tem e o mapa não</span><span>'+L.gaps.length+'</span></div>'+L.gaps.map(g=>'<div class="gap"><h3>'+g[0]+'</h3><p>'+g[1]+'</p></div>').join('');
+  if(L.checks&&L.checks.length)html+='<div class="sec"><span>Conferir no relatório</span><span>'+L.checks.length+'</span></div>'+L.checks.map(g=>'<div class="gap red"><h3>'+g[0]+'</h3><p>'+g[1]+'</p></div>').join('');
+  html+='<p class="hint">Clique num card para ver a fraqueza em todas as óticas, ou num grupo para aproximar o mapa dele. Atalhos: <kbd>1</kbd>–<kbd>6</kbd> trocam a ótica, <kbd>/</kbd> busca, <kbd>Esc</kbd> volta.</p>';
+  return html;
+}
+function hubPanel(L,h){
+  let html='<button class="back" data-back>'+ARROW+L.name+'</button><h2>'+h.name+'</h2>'+
+   '<div class="sub"><span>'+h.code+'</span><span class="dot">'+L.name+'</span>'+(h.sub?'<span class="dot">'+h.sub+'</span>':'')+'<span class="dot">'+plural(h.members.length,'item','itens')+'</span></div>';
+  if(L.id==='orig'){
+    const dist=countBy(h.members,id=>MEM.raiz[id]);
+    html+='<p>'+plural(h.members.length,'item','itens')+' neste galho. Nas causas-raiz, eles se espalham por '+plural(dist.length,'causa','causas diferentes')+'. Um galho dos 4Ps não corresponde a um problema só.</p>';
+    html+='<div class="sec"><span>Destino nas causas-raiz</span></div><div class="chips">'+dist.map(([k,c])=>{const g=hubObj(LENS.raiz,k);return'<span class="chip blue">'+g.code+' '+g.name+' · '+c+'</span>';}).join('')+'</div>';
+  }else{
+    html+='<p>'+h.text+'</p>';
+    const dist=countBy(h.members,id=>[N[id].p]);
+    html+='<div class="sec"><span>Origem no mapa original</span><span>'+plural(dist.length,'galho','galhos')+'</span></div><div class="chips">'+dist.map(([p,c])=>'<span class="chip">'+ORIG[p]+' · '+c+'</span>').join('')+'</div>';
+  }
+  if(L.id==='ciclo'){
+    const lp=h.loop;
+    html+='<div class="sec"><span>Como o ciclo gira</span><span>'+lp.chain.length+' elos</span></div><ol class="chain">'+
+      lp.chain.map((id,i)=>'<li><span class="n">'+N[id].tag+'</span><span>'+N[id].s+'</span><span class="why">'+lp.why[i]+'</span></li>').join('')+'</ol>';
+    html+='<div class="sec"><span>Quem alimenta o ciclo</span></div><ol class="chain">'+lp.feeds.map(([s,t,w])=>'<li><span class="n">'+N[s].tag+'</span><span>'+N[s].s+'</span><span class="why">'+w+'</span></li>').join('')+'</ol>';
+    const br=BRIDGES.filter(([s,t])=>lp.chain.includes(s)||lp.chain.includes(t));
+    if(br.length)html+='<div class="sec"><span>Pontes com outros ciclos</span></div><ol class="chain">'+br.map(([s,t,w])=>'<li class="red"><span class="n">'+N[s].tag+'</span><span>'+N[s].s+' <span class="rel">→</span> '+N[t].s+'</span><span class="why">'+w+'</span></li>').join('')+'</ol>';
+  }
+  if(L.id==='raiz'){
+    const multi=h.members.filter(id=>MEM.raiz[id].length>1);
+    if(multi.length)html+='<div class="sec"><span>Nós de encontro aqui</span><span>Também em</span></div>'+multi.map(id=>{const o=MEM.raiz[id].find(x=>x!==h.id);return nodeBtn(id,'<i>'+o+'</i>');}).join('');
+  }
+  if(L.id!=='ciclo'){
+    const list=L.id==='raiz'?h.members.filter(id=>MEM.raiz[id].length===1):h.members;
+    html+='<div class="sec"><span>'+(L.id==='raiz'?'Só nesta causa':'Itens')+'</span><span>'+list.length+'</span></div>'+list.map(id=>nodeBtn(id,L.id==='aud'&&AUD_BADGE[id]?AUD_BADGE[id]:'')).join('');
+  }
+  return html;
+}
+const IGN={ctrl:['dass'],aud:['manter']};
+function affinity(a,b){let s=0;
+  ['raiz','jorn','ctrl','ciclo','aud'].forEach(lid=>{const ga=MEM[lid][a].filter(g=>!(IGN[lid]||[]).includes(g)),gb=MEM[lid][b];if(ga.some(g=>gb.includes(g)))s++;});
+  return{s};}
+function lensGroups(L,id){
+  if(L.id==='ciclo'){const r=cicloRole(id);
+    if(r.t==='elo')return'<span class="chip blue">Elo · '+r.lp.id+' '+r.lp.name+'</span>';
+    if(r.t==='alimenta')return'<span class="chip">Alimenta · '+r.lp.id+' '+r.lp.name+'</span>';
+    if(r.t==='ponte')return'<span class="chip red">Ponte entre B e A</span>';
+    return'<span class="chip dim">Fora dos ciclos</span>';}
+  const gs=MEM[L.id][id];const red=L.id==='raiz'&&gs.length>1;
+  return gs.map(g=>{const h=hubObj(L,g);return'<span class="chip'+(red?' red':'')+'">'+h.code+' '+h.name+'</span>';}).join('')+(L.id==='aud'&&AUD_BADGE[id]?'<span class="chip'+(AUD_BADGE[id][0]==='F'?' blue':' red')+'">'+AUD_BADGE[id]+'</span>':'');
+}
+function nodePanel(n){
+  let html='<button class="back" data-back>'+ARROW+cur.name+'</button><h2>'+n.s+'</h2>'+
+   '<div class="sub"><span>'+n.tag+'</span><span class="dot">Galho original: '+ORIG[n.p]+'</span></div>'+
+   '<p class="desc">'+n.f+'</p>';
+  html+='<div class="sec"><span>Em cada ótica</span><span>Clique para trocar</span></div>'+
+   LENSES.map(L=>'<button class="lrow'+(L===cur?' cur':'')+'" data-lens="'+L.id+'"><span class="n">'+L.num+'</span><span class="ln">'+L.name+'</span><span class="gs">'+lensGroups(L,n.id)+'</span></button>').join('');
+  const ce=CICLO_LINKS.filter(l=>l.a===n.id||l.b===n.id);
+  if(ce.length)html+='<div class="sec"><span>Causa e efeito</span><span>Ótica 05</span></div><ol class="chain">'+ce.map(l=>{const out=l.a===n.id,o=N[out?l.b:l.a];
+    return'<li class="'+(l.kind==='bridge'?'red ':'')+(out?'':'in')+'"><span class="n">'+o.tag+'</span><span><span class="rel">'+(out?'Provoca:':'É provocada por:')+'</span> '+o.s+'</span><span class="why">'+l.why+'</span></li>';}).join('')+'</ol>';
+  const nb=NODES.filter(m=>m.id!==n.id).map(m=>({m,...affinity(n.id,m.id)})).filter(o=>o.s>=2).sort((a,b)=>b.s-a.s).slice(0,6);
+  html+='<div class="sec"><span>Vizinhas estruturais</span><span>Óticas em comum</span></div>';
+  if(nb.length)html+=nb.map(o=>nodeBtn(o.m.id,'<i>'+'●'.repeat(o.s)+'</i>'+'○'.repeat(5-o.s))).join('')+
+    '<p class="hint">Itens que caem no mesmo grupo em duas ou mais óticas (02 a 06). Quanto mais pontos, mais provável que sejam a mesma fraqueza vista de ângulos diferentes.</p>';
+  else html+='<p style="margin-top:10px">Nenhum item divide duas ou mais óticas com este. É uma fraqueza isolada: vale checar se ela pesa no share ou se é ruído.</p>';
+  return html;
+}
+function renderPanel(){
+  let html;
+  if(sel&&sel.type==='node')html=nodePanel(N[sel.id]);
+  else if(sel&&sel.type==='hub'){const h=hubObj(cur,sel.id);html=h?hubPanel(cur,h):lensPanel(cur);}
+  else html=lensPanel(cur);
+  panel.innerHTML='<div class="inner">'+html+'</div>';
+  if(!matchMedia('(max-width:900px)').matches)panel.scrollTop=0;
+}
+panel.addEventListener('click',e=>{
+  const b=e.target.closest('[data-back]');if(b){select(null);return;}
+  const h=e.target.closest('[data-hub]');if(h){select({type:'hub',id:h.dataset.hub});return;}
+  const n=e.target.closest('[data-node]');if(n){sel=null;select({type:'node',id:n.dataset.node});return;}
+  const l=e.target.closest('[data-lens]');if(l){setLens(l.dataset.lens,true);}
+});
+if(HOVER)panel.addEventListener('mouseover',e=>{const n=e.target.closest('[data-node]');const h=e.target.closest('[data-hub]');
+  const nh=n?{type:'node',id:n.dataset.node}:h?{type:'hub',id:h.dataset.hub}:null;
+  if(JSON.stringify(nh)!==JSON.stringify(hov)){hov=nh;applyFocus();}});
+if(HOVER)panel.addEventListener('mouseleave',()=>{hov=null;applyFocus();});
+
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target===q)return;
+  if(e.key==='/'){e.preventDefault();q.focus();q.select();return;}
+  const i=parseInt(e.key,10);if(i>=1&&i<=LENSES.length){setLens(LENSES[i-1].id,true);return;}
+  if(e.key==='Escape'){if(srch){q.value='';runSearch();}else if(sel)select(null);}
+});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{ind.classList.add('instant');moveInd();requestAnimationFrame(()=>ind.classList.remove('instant'));fit(0);},120);});
+
+/* ============================ INÍCIO ============================ */
+measure();
+let start='raiz';try{const h=location.hash.replace('#','');if(LENS[h])start=h;}catch(e){}
+setLens(start,false);
+requestAnimationFrame(()=>ind.classList.remove('instant'));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{measure();placeHubs();ind.classList.add('instant');moveInd();requestAnimationFrame(()=>ind.classList.remove('instant'));
+  if(cur.layout==='columns'){const L=cur;cur=null;first=true;const s=sel;setLens(L.id,true);sel=s;applyFocus();renderPanel();}
+  else{relayout(RM?0:300);fit(RM?0:300);}});
+})();
+</script>
+</body>
+</html>
